@@ -106,7 +106,7 @@ foreach ($events as $event) {
   }
   
   //やっとLocationIdを返す処理
-  replyTextMessage($bot, $event->getReplyToken(), $location . 'の住所IDは' . $locationId . 'です。');
+  //replyTextMessage($bot, $event->getReplyToken(), $location . 'の住所IDは' . $locationId . 'です。');
   
   $jsonString = file_get_contents('http://weather.livedoor.com/forecast/webservice/json/v1?city=' . $locationId);
   $json = json_decode($jsonString, TRUE);
