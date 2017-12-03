@@ -26,12 +26,13 @@ foreach ($events as $event) {
     error_log('not message event has come');
     continue;
   }
-  if (!($event instanceof \LINE\LINEBot\Event\MessageEvent\TextMessage)) {
-    error_log('not text message has come');
+  if (($event instanceof \LINE\LINEBot\Event\MessageEvent\TextMessage)) {
+    $location = $event->getText();
+  } else if ($event instanceof \LINE\LINEBot\Event\MessageEvent\LocationMessage) {
+    replyTextMessage($bot, $event->getReplyToken(), $event->getAddress() . '[' . $event->getLatitude() . ',' . $event->getLongitude() .']');
     continue;
   }
 
-  $location = $event->getText();
   
   $locationId;
   $client = new Goutte\Client();
@@ -49,7 +50,7 @@ foreach ($events as $event) {
     $suggestArray = array();
     
     foreach ($crawler->filter('channel ldWeather|source pref') as $pref) {
-      if(strpos($pref->getAttribute('title'), $location) !== false) {     // strpos: 第一引数が第二引数に見つかる位置を返す。0番目もありえるので!=じゃダメ。
+      if(strpos($pref->getAttribute('title'), $location) !== false) {     // strpos: 第2引数が第1引数に見つかる位置を返す。0番目もありえるので!=じゃダメ。
         foreach($pref->childNodes as $child) {
           if($child instanceof DOMElement && $child->nodeName == 'city') {
             array_push($suggestArray, $child->getAttribute('title'));
