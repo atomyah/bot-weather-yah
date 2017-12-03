@@ -29,9 +29,32 @@ foreach ($events as $event) {
   if (($event instanceof \LINE\LINEBot\Event\MessageEvent\TextMessage)) {
     $location = $event->getText();
   } else if ($event instanceof \LINE\LINEBot\Event\MessageEvent\LocationMessage) {
-    replyTextMessage($bot, $event->getReplyToken(), $event->getAddress() . '[' . $event->getLatitude() . ',' . $event->getLongitude() .']');
-    continue;
+    $jsonString = file_get_contents('https://maps.googleapis.com/maps/api/geocode/json?language=ja&latlng=' . $event->getLatitude() . ',' . $event->getLongitude());
+    $json = json_decode($jsonString, TRUE);
+    $addressComponentArray = $json['results'][0]['address_components'];
+    
+    foreach ($addressComponentArray as $addressComponent) {
+      if(in_array('administrative_area_level_1', $addressComponent['types'])) {
+        $prefName = $addressComponent['long_name'];   // $prefNameには神奈川県など県名が入るね。
+        break;
+      }
+    }
+    
+    if($prefName == '東京都') {
+      $location = '東京';
+    } else if ($prefName == '大阪府') {
+      $location = '大阪';
+    } else {
+      foreach ($addressComponentArray as $addressComponent) {
+        if(in_array('locality', $addressComponent['types']) && !in_array('ward', $addressComponent['types'])) {
+          $location = $addressComponent['long_name'];
+          break;
+        }           
+      }
+    }
+    
   }
+  
 
   
   $locationId;
@@ -47,6 +70,10 @@ foreach ($events as $event) {
   }
   
   if(empty($locationId)) {
+    if($event instanceof \LINE\LINEBot\Event\MessageEvent\LocationMessage) {
+      $location = $prefName;
+    }
+    
     $suggestArray = array();
     
     foreach ($crawler->filter('channel ldWeather|source pref') as $pref) {
