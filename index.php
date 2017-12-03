@@ -30,9 +30,55 @@ foreach ($events as $event) {
     error_log('not text message has come');
     continue;
   }
-  //オウム返し parrotting
-//  $bot->replyText($event->getReplyToken(), $event->getText());
-  replyTextMessage($bot, $event->getReplyToken(), $event->getText());
+
+  $location = $event->getText();
+  
+  $locationId;
+  $client = new Goutte\Client();
+  
+  $crawler = $client->request('GET', 'http://weather.livedoor.com/forecast/rss/primary_area.xml');
+  
+  foreach ($crawler->filter('channel ldWeather|source pref city') as $city) {
+    if($city->getAttribute('title') == $location || $city->getAttribute('title').'市' == $location) {
+      $locationId = $city->getAttribute('id');
+      break;
+    }
+  }
+  
+  if(empty($locationId)) {
+    $suggestArray = array();
+    
+    foreach ($crawler->filter('channel ldWeather|source pref') as $pref) {
+      if(strpos($pref->getAttribute('title'), $location) !== false) {     // strpos: 第一引数が第二引数に見つかる位置を返す。0番目もありえるので!=じゃダメ。
+        foreach($pref->childNodes as $child) {
+          if($child instanceof DOMElement && $child->nodeName == 'city') {
+            array_push($suggestArray, $child->getAttribute('title'));
+          }
+        }
+        break; 
+      }
+    }
+    
+    //ここからCity候補($suggestsArray)のボタンを作成
+    if(count($suggestArray) >0) {
+      $actionArray = array();
+      
+      foreach ($suggestArray as $city) {
+        array_push($actionArray, new \LINE\LINEBot\TemplateActionBuilder\MessageTemplateActionBuilder($city, $city));
+      }
+      $builder = new \LINE\LINEBot\MessageBuilder\TemplateMessageBuilder('見つかりませんでした', 
+                 new \LINE\LINEBot\MessageBuilder\TemplateBuilder\ButtonTemplateBuilder('見つかりませんでした', 'もしかして?', NULL, $actionArray));
+      $bot->replyMessage($event->getReplyToken(), $builder);
+      
+    } else {
+      replyTextMessage($bot, $event->getReplyToken(), '入力された地名が見つかりませんでした。');
+    }
+    
+    continue;
+  }
+  
+  //やっとLocationIdを返す処理
+  replyTextMessage($bot, $event->getReplyToken(), $location . 'の住所IDは' . $locationId . 'です。');
 }
 
 
