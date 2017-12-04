@@ -113,11 +113,30 @@ foreach ($events as $event) {
   
   $date = date_parse_from_format('Y-m-d\TH:i:sP', $json['description']['publicTime']);
   
+  /*
   replyTextMessage($bot, $event->getReplyToken(), $json['description']['text'] . PHP_EOL . PHP_EOL .
           '最終更新' . sprintf('%s月%s日%s時%s分', $date['month'], $date['day'], $date['hour'], $data['minute']));
-
+  */
   
+  if($json['forecast']['0']['telop'] == '晴れ') {
+    replyMultiMessage($bot, $event->getReplyToken(), 
+            new \LINE\LINEBot\MessageBuilder\TextMessageBuilder(
+                    $json['description']['text'] . PHP_EOL. PHP_EOL .
+                    '最終更新' . sprintf('%s月%s日%s時%s分', $date['month'], $date['day'], $date['hour'], $data['minute'])),
+            new \LINE\LINEBot\MessageBuilder\StickerMessageBuilder(2, 513)
+    );
+    
+  } else if($json['forecast']['0']['telop'] == '雨') {
+    replyMultiMessage($bot, $event->getReplyToken(), 
+            new \LINE\LINEBot\MessageBuilder\TextMessageBuilder(
+                    $json['description']['text'] . PHP_EOL. PHP_EOL .
+                    '最終更新' . sprintf('%s月%s日%s時%s分', $date['month'], $date['day'], $date['hour'], $data['minute'])),
+            new \LINE\LINEBot\MessageBuilder\StickerMessageBuilder(2, 507)
+    );
   
+} else {
+    replyTextMessage($bot, $event->getReplyToken(), $json['description']['text'] . PHP_EOL . PHP_EOL .
+            '最終更新' . sprintf('%s月%s日%s時%s分', $date['month'], $date['day'], $date['hour'], $data['minute']));
 }
 
 
