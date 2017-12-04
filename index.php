@@ -22,7 +22,6 @@ try {
 
 
 foreach ($events as $event) {
-  error_log($event->getUserId());
   if (!($event instanceof \LINE\LINEBot\Event\MessageEvent)) {
     error_log('not message event has come');
     continue;
