@@ -134,10 +134,10 @@ foreach ($events as $event) {
             new \LINE\LINEBot\MessageBuilder\StickerMessageBuilder(2, 507)
     );
   
-} else {
+  } else {
     replyTextMessage($bot, $event->getReplyToken(), $json['description']['text'] . PHP_EOL . PHP_EOL .
             '最終更新' . sprintf('%s月%s日%s時%s分', $date['month'], $date['day'], $date['hour'], $data['minute']));
+  }
+
 }
-
-
 ?>
